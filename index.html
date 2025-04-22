@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Крестики-нолики с роботом</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(45deg, #1a1a2e, #16213e);
+            font-family: Arial, sans-serif;
+        }
+
+        .game {
+            text-align: center;
+            color: white;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            gap: 5px;
+            margin: 20px auto;
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            background: #0f3460;
+            border: none;
+            font-size: 40px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .cell:hover {
+            background: #1a4b7c;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #e94560;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background: #ff6b81;
+        }
+
+        .status {
+            margin: 20px 0;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game">
+        <h1>Крестики-нолики</h1>
+        <div class="board" id="board"></div>
+        <div class="status" id="status">Ваш ход (X)</div>
+        <button onclick="restartGame()">Начать заново</button>
+    </div>
+
+    <script>
+        const board = document.getElementById('board');
+        const status = document.getElementById('status');
+        let gameBoard = Array(9).fill(null);
+        let gameActive = true;
+
+        // Создаем игровое поле
+        for (let i = 0; i < 9; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.addEventListener('click', () => makeMove(i));
+            board.appendChild(cell);
+        }
+
+        function makeMove(index) {
+            if (!gameActive || gameBoard[index]) return;
+
+            // Ход игрока
+            gameBoard[index] = 'X';
+            board.children[index].textContent = 'X';
+
+            if (checkWin('X')) {
+                status.textContent = 'Вы победили! 🎉';
+                gameActive = false;
+                return;
+            }
+
+            if (checkDraw()) {
+                status.textContent = 'Ничья! 🤝';
+                gameActive = false;
+                return;
+            }
+
+            // Ход робота
+            setTimeout(() => {
+                if (gameActive) {
+                    const emptyCells = gameBoard
+                        .map((cell, index) => cell === null ? index : null)
+                        .filter(cell => cell !== null);
+                    
+                    const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                    gameBoard[randomIndex] = 'O';
+                    board.children[randomIndex].textContent = 'O';
+
+                    if (checkWin('O')) {
+                        status.textContent = 'Робот победил! 🤖';
+                        gameActive = false;
+                        return;
+                    }
+
+                    if (checkDraw()) {
+                        status.textContent = 'Ничья! 🤝';
+                        gameActive = false;
+                        return;
+                    }
+                }
+            }, 500);
+        }
+
+        function checkWin(player) {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // горизонтали
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // вертикали
+                [0, 4, 8], [2, 4, 6]             // диагонали
+            ];
+
+            return winPatterns.some(pattern => {
+                const [a, b, c] = pattern;
+                return gameBoard[a] === player && 
+                       gameBoard[b] === player && 
+                       gameBoard[c] === player;
+            });
+        }
+
+        function checkDraw() {
+            return gameBoard.every(cell => cell !== null);
+        }
+
+        function restartGame() {
+            gameBoard = Array(9).fill(null);
+            gameActive = true;
+            status.textContent = 'Ваш ход (X)';
+            Array.from(board.children).forEach(cell => {
+                cell.textContent = '';
+            });
+        }
+    </script>
+</body>
+</html>
